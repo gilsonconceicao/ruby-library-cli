@@ -3,7 +3,7 @@ books_list = []
 # title, author, yearPublish
 
 loop do
-    puts "\n=== MEU PRIMEIRO MENU ==="
+    puts "\n=== MENU ==="
     puts "1 - Add new book"
     puts "2 - Read all books"
     puts "3 - Search by book"
@@ -27,11 +27,19 @@ loop do
 
             if title != "" && author != "" && year != ""
                 newBook = {title: title, author: author, year: year}
-                
+                books_list.push(newBook)
+                puts("Book #{title} added with success!")
             end
             
         when "2"
-            puts "Option selected 2"
+            if books_list.length == 0
+                puts  "Books list is empty. Add a new book to see here."
+            end
+
+            books_list.each_with_index do | book, index |
+              puts "#{index + 1} - #{book[:title]} from #{book[:author]} at #{book[:year]}"
+            end
+
         when "3"
             puts "Option selected 3"
         when "4"
