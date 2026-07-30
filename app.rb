@@ -28,6 +28,16 @@ def read_all_books(books_list)
   end
 end
 
+def get_book_by_id(books_list, bookId)
+  find_book = books_list.find { |book| book[:id] == bookId }
+  if find_book
+    data_formatada = find_book[:created_at].strftime("%d/%m/%Y às %H:%M")
+    puts "##{find_book[:id]} - Título: #{find_book[:title]} | Autor: #{find_book[:author]} | Adicionado em: #{data_formatada}"
+  else
+    puts "Book not found"
+  end
+end
+
 loop do
   puts "\n======== MENU ======== "
   puts "1 - Read all books"
@@ -45,7 +55,9 @@ loop do
   when "1"
     read_all_books(books_list)
   when "2"
-    puts "Option selected 2"
+    puts "Search by book ID"
+    findId = gets.chomp
+    get_book_by_id(books_list, findId)
   when "3"
     puts "Enter with info abount book"
 
