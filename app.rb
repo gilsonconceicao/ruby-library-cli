@@ -38,6 +38,16 @@ def get_book_by_id(books_list, bookId)
   end
 end
 
+def delete_book_by_id(books_list, bookId)
+  find_book = books_list.find { |book| book[:id] == bookId }
+  if !find_book
+    return puts "Book not found"
+  end
+
+  books_list.reject! { |book| book[:id] == bookId }
+  puts("Book deleted with success!")
+end
+
 loop do
   puts "\n======== MENU ======== "
   puts "1 - Read all books"
@@ -72,7 +82,9 @@ loop do
 
     add_book(books_list, newBook)
   when "4"
-    puts "Option selected 3"
+    puts "Enter book ID to delete"
+    findId = gets.chomp
+    delete_book_by_id(books_list, findId)
   when "E"
     puts "Saindo..."
     break
