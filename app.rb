@@ -1,8 +1,13 @@
+require "securerandom"
+require "date"
+
 # properties: title, author, yearPublish
 books_list = []
 
 def add_book(books_list, newBook)
   if newBook[:title] != "" && newBook[:author] != "" && newBook[:year] != ""
+    newBook[:id] = SecureRandom.uuid
+    newBook[:created_at] = DateTime.now
     books_list.push(newBook)
     puts("Book #{newBook[:title]} added with success!")
   else
@@ -14,9 +19,12 @@ def read_all_books(books_list)
   if books_list.length == 0
     puts "Books list is empty. Add a new book to see here."
   end
+  puts "\n"
 
   books_list.each_with_index do |book, index|
-    puts "#{index + 1} - #{book[:title]} from #{book[:author]} at #{book[:year]}"
+    data_formatada = book[:created_at].strftime("%d/%m/%Y às %H:%M")
+
+    puts "##{book[:id]} - Título: #{book[:title]} | Autor: #{book[:author]} | Adicionado em: #{data_formatada}"
   end
 end
 
