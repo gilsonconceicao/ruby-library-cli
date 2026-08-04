@@ -1,115 +1,147 @@
 require "securerandom"
 require "date"
+require "json"
 
-books_list = []
+FILE_PATH = "data.json"
+
+def get_file_persist_json
+  if !File.exist?(FILE_PATH) || File.zero?(FILE_PATH)
+    File.write(FILE_PATH, "[]")
+    return []
+  end
+
+  JSON.parse(File.read(FILE_PATH), symbolize_names: true)
+rescue JSON::ParserError => e
+  puts "Erro ao ler o JSON: #{e.message}"
+  []
+end
+
+def save_book_in_file(data)
+  File.write(FILE_PATH, JSON.pretty_generate(data))
+end
 
 class Book
-  attr_reader :list
-
   def initialize(list)
     @list = list
   end
 
   def add(title, author, year)
-    new_book = { tilte: title, author: author, year: year }
-
-    if new_book[:title] != "" && new_book[:author] != "" && new_book[:year] != ""
-      new_book[:id] = SecureRandom.uuid
-      new_book[:created_at] = DateTime.now
-      @list.push(new_book)
-      puts("\nBook #{new_book[:title]} added with success!")
-    else
-      puts("Error adding the book due to missing information.")
+    if title.empty? || author.empty? || year.empty?
+      puts "\nError adding the book due to missing information."
+      return
     end
+
+    new_book = {
+      id: SecureRandom.uuid,
+      title: title,
+      author: author,
+      year: year,
+      created_at: DateTime.now.iso8601,
+    }
+
+    @list << new_book
+    save_book_in_file(@list)
+
+    puts "\nBook '#{title}' added successfully!"
   end
 
-  def read_all()
+  def read_all
     if @list.empty?
-      puts "\nBooks list is empty. Add a new book to see here."
+      puts "\nBooks list is empty."
+      return
     end
 
-    @list.each_with_index do |book| show_formated(book) end
+    puts "\n===== BOOKS ====="
+
+    @list.each do |book|
+      show_formatted(book)
+    end
   end
 
   def get_by_id(book_id)
     find_book = @list.find { |book| book[:id] == book_id }
+
     if find_book
-      puts "\nBook finded: "
-      show_formated(find_book)
+      puts "\nBook found:"
+      show_formatted(find_book)
     else
-      puts "Book not found"
+      puts "\nBook not found."
     end
   end
 
   def delete_by_id(book_id)
-    find_book = @list.find { |book| book[:id] == book_id }
-    unless find_book
-      puts "Book not found"
-      return
-    end
+    deleted = @list.reject! { |book| book[:id] == book_id }
 
-    @list.reject! { |book| book[:id] == book_id }
-    puts("\nBook deleted with success!")
+    if deleted
+      save_book_in_file(@list)
+      puts "\nBook deleted successfully!"
+    else
+      puts "\nBook not found."
+    end
   end
 
-  def show_formated(book)
-    puts "\n"
-    created_at_formated = book[:created_at].strftime("%d/%m/%Y às %H:%M")
-    puts "\##{book[:id]} - Título: #{book[:title]} | Autor: #{book[:author]} | Adicionado em: #{created_at_formated}"
+  private def show_formatted(book)
+    created_at = DateTime.parse(book[:created_at])
+
+    puts "-" * 50
+    puts "ID:      #{book[:id]}"
+    puts "Title:   #{book[:title]}"
+    puts "Author:  #{book[:author]}"
+    puts "Year:    #{book[:year]}"
+    puts "Created: #{created_at.strftime("%d/%m/%Y %H:%M")}"
   end
 end
 
 class StartProgram
-  attr_reader :book_list
-
   def initialize(book_list)
-    @book_list = book_list
+    @book = Book.new(book_list)
   end
 
-  def Start
-    book_started = Book.new(@book_list)
+  def start
     loop do
-      puts "\n======== MENU ======== "
-      puts "1 - Read all books"
-      puts "2 - Search by book"
+      puts "\n========== MENU =========="
+      puts "1 - List all books"
+      puts "2 - Search by ID"
       puts "3 - Add new book"
       puts "4 - Delete book"
       puts "E - Exit"
-      puts "\n"
+      print "\nChoose an option: "
 
-      print "Choose an option: "
+      option = gets.chomp.upcase
 
-      choose_user = gets.chomp
-
-      case choose_user
+      case option
       when "1"
-        book_started.read_all
+        @book.read_all
       when "2"
-        puts "\nSearch by book ID"
-        find_id = gets.chomp
-        book_started.get_by_id(find_id)
+        print "\nEnter book ID: "
+        id = gets.chomp
+        @book.get_by_id(id)
       when "3"
-        puts "\nEnter with info abount book"
+        puts "\nAdd a new book"
 
-        print "\nTitle: "
+        print "Title: "
         title = gets.chomp
+
         print "Author: "
         author = gets.chomp
-        print "Year Pulish: "
+
+        print "Year: "
         year = gets.chomp
 
-        book_started.add(title, author, year)
+        @book.add(title, author, year)
       when "4"
-        puts "Enter book ID to delete"
-        find_id = gets.chomp
-        book_started.delete_by_id(find_id)
+        print "\nEnter book ID to delete: "
+        id = gets.chomp
+        @book.delete_by_id(id)
       when "E"
-        puts "Saiu..."
+        puts "\nGoodbye!"
         break
+      else
+        puts "\nInvalid option."
       end
     end
   end
 end
 
-StartProgram.new(books_list)
-            .Start()
+books = get_file_persist_json
+StartProgram.new(books).start()
