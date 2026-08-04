@@ -1,0 +1,9 @@
+/vendor/bundle
+/.bundle
+*.log
+/tmp
+*.tmp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
